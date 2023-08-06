@@ -31,7 +31,7 @@ export class SpotifyClient extends ConnectionClient implements IConnectionClient
 			return null;
 		}
 
-		if (dayjs().isBefore(dayjs(accessToken.expiresAt))) {
+		if (dayjs().isAfter(dayjs(accessToken.expiresAt))) {
 			const qs = new URLSearchParams({
 				grant_type: 'refresh_token',
 				refresh_token: accessToken.refreshToken

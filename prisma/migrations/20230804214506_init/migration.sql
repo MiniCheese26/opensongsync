@@ -1,0 +1,7 @@
+-- CreateTable
+CREATE TABLE "Connections" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "accessToken" TEXT NOT NULL,
+    "expiresAt" DATETIME NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

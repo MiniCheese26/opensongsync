@@ -2,8 +2,7 @@ import { SPOTIFY_CLIENT_ID } from '$lib/spotify';
 import dayjs from 'dayjs';
 import { ConnectionClient, type IConnectionClient, type Track } from './connectionClient';
 import db from './db';
-
-export const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
+import { SPOTIFY_CLIENT_SECRET } from '$env/static/private';
 
 type SpotifyApiTrackItem = {
 	album: {
@@ -25,7 +24,7 @@ export class SpotifyClient extends ConnectionClient implements IConnectionClient
 	}
 
 	static async initialise(): Promise<SpotifyClient | null> {
-		const accessToken = await db.spotifyConnections.findFirst();
+		const accessToken = await db.spotifyAccessTokens.findFirst();
 
 		if (!accessToken) {
 			return null;
@@ -51,7 +50,7 @@ export class SpotifyClient extends ConnectionClient implements IConnectionClient
 
 			const body = await res.json();
 
-			await db.spotifyConnections.update({
+			await db.spotifyAccessTokens.update({
 				where: {
 					id: accessToken.id
 				},

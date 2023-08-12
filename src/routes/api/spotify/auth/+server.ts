@@ -2,8 +2,8 @@ import { redirect } from '@sveltejs/kit';
 import db from '$lib/server/db';
 import dayjs from 'dayjs';
 import { SPOTIFY_CLIENT_ID } from '$lib/spotify';
-import { SPOTIFY_CLIENT_SECRET } from '$lib/server/spotify.js';
 import { getDomain } from '$lib/utils';
+import { SPOTIFY_CLIENT_SECRET } from '$env/static/private';
 
 export const GET = async ({ url }) => {
 	const params = url.searchParams;
@@ -40,7 +40,7 @@ export const GET = async ({ url }) => {
 		}
 	});
 
-	await db.spotifyConnections.create({
+	await db.spotifyAccessTokens.create({
 		data: {
 			accessToken: body.access_token,
 			refreshToken: body.refresh_token,

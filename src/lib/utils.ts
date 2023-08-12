@@ -1,5 +1,7 @@
-export const getDomain = () => {
-	const prefix = process.env.HTTPS?.toLowerCase() === 'true' ? 'https://' : 'http://';
+import { PUBLIC_DOMAIN, PUBLIC_HTTPS } from "$env/static/public";
 
-	return prefix + process.env.DOMAIN;
+export const getDomain = () => {
+	const prefix = PUBLIC_HTTPS.toLowerCase() === 'true' ? 'https://' : 'http://';
+
+	return prefix + PUBLIC_DOMAIN;
 };

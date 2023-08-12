@@ -4,7 +4,7 @@ import dayjs from 'dayjs';
 export const POST = async ({ request }) => {
 	const data = await request.json();
 
-	await db.tidalConnections.create({
+	await db.tidalAccessTokens.create({
 		data: {
 			...data,
 			expiresAt: dayjs().add(data.expiresAt, 'seconds').toDate()

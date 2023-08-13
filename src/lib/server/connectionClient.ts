@@ -44,7 +44,7 @@ export abstract class ConnectionClient {
 
 	protected makeHeaders(contentType?: string): Record<string, string> {
 		const headers = {
-			Authorization: `Bearer ${this.accessToken}`
+			Authorization: `Bearer ${this.accessToken}`,
 		} as {
 			Authorization: string;
 			'Content-Type'?: string;
@@ -60,13 +60,13 @@ export abstract class ConnectionClient {
 	protected async makeRequest<T extends Record<string, unknown>>(
 		path: string,
 		data?: RequestData,
-		method: Methods = 'GET'
+		method: Methods = 'GET',
 	): Promise<ConnectionResponse<T> | null> {
 		const url = this.makeUrl(path, data?.qs);
 
 		const options: RequestInit = {
 			method,
-			body: data?.body ? JSON.stringify(data.body) : null
+			body: data?.body ? JSON.stringify(data.body) : null,
 		};
 
 		if (data?.body) {
@@ -86,7 +86,7 @@ export abstract class ConnectionClient {
 
 		return {
 			response,
-			data: await response.json()
+			data: await response.json(),
 		};
 	}
 }

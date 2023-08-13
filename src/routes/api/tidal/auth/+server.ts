@@ -7,11 +7,11 @@ export const POST = async ({ request }) => {
 	await db.tidalAccessTokens.create({
 		data: {
 			...data,
-			expiresAt: dayjs().add(data.expiresAt, 'seconds').toDate()
-		}
+			expiresAt: dayjs().add(data.expiresAt, 'seconds').toDate(),
+		},
 	});
 
 	return new Response(null, {
-		status: 201
+		status: 201,
 	});
 };

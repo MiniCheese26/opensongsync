@@ -1,9 +1,9 @@
 <script lang="ts">
 	import {
-		generateRandomString,
 		SPOTIFY_CLIENT_ID,
+		generateRandomString,
 	} from '$lib/spotify';
-	import { TIDAL_CLIENT_ID as TIDAL_CLIENT_ID, AUTH_URL, TIDAL_CLIENT_SECRET } from '$lib/tidal';
+	import { AUTH_URL, TIDAL_CLIENT_ID as TIDAL_CLIENT_ID, TIDAL_CLIENT_SECRET } from '$lib/tidal';
 	import { getDomain } from '$lib/utils';
 	import dayjs from 'dayjs';
 

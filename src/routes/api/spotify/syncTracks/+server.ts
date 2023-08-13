@@ -11,6 +11,6 @@ export const GET = async () => {
 	await s.fetchAllTracks();
 
 	return new Response('', {
-		status: 200
+		status: 200,
 	});
 };

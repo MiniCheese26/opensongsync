@@ -1,8 +1,8 @@
 import { ConnectionClient, type IConnectionClient, type Track } from './connectionClient';
-import { SPOTIFY_CLIENT_ID } from '$lib/spotify';
 import { SPOTIFY_CLIENT_SECRET } from '$env/static/private';
 import dayjs from 'dayjs';
 import db from './db';
+import { PUBLIC_SPOTIFY_CLIENT_ID } from '$env/static/public';
 
 type SpotifyApiTrackItem = {
 	album: {
@@ -39,7 +39,7 @@ export class SpotifyClient extends ConnectionClient implements IConnectionClient
 			const res = await fetch('https://accounts.spotify.com/api/token?' + qs, {
 				method: 'POST',
 				headers: {
-					Authorization: `Basic ${btoa(SPOTIFY_CLIENT_ID + ':' + SPOTIFY_CLIENT_SECRET)}`,
+					Authorization: `Basic ${btoa(PUBLIC_SPOTIFY_CLIENT_ID + ':' + SPOTIFY_CLIENT_SECRET)}`,
 					'Content-Type': 'application/x-www-form-urlencoded',
 				},
 			});

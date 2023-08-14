@@ -1,9 +1,9 @@
 <script lang="ts">
+	import { PUBLIC_SPOTIFY_CLIENT_ID } from '$env/static/public';
 	import {
-		SPOTIFY_CLIENT_ID,
 		generateRandomString,
 	} from '$lib/spotify';
-	import { AUTH_URL, TIDAL_CLIENT_ID as TIDAL_CLIENT_ID, TIDAL_CLIENT_SECRET } from '$lib/tidal';
+	import { AUTH_URL, TIDAL_CLIENT_ID, TIDAL_CLIENT_SECRET } from '$lib/tidal';
 	import { getDomain } from '$lib/utils';
 	import dayjs from 'dayjs';
 
@@ -13,7 +13,7 @@
 
 		const args = new URLSearchParams({
 			response_type: 'code',
-			client_id: SPOTIFY_CLIENT_ID,
+			client_id: PUBLIC_SPOTIFY_CLIENT_ID,
 			scope: scope,
 			redirect_uri: `${getDomain()}/api/spotify/auth`,
 			state: state,

@@ -1,9 +1,9 @@
 import { redirect } from '@sveltejs/kit';
 import db from '$lib/server/db';
 import dayjs from 'dayjs';
-import { SPOTIFY_CLIENT_ID } from '$lib/spotify';
 import { getDomain } from '$lib/utils';
 import { SPOTIFY_CLIENT_SECRET } from '$env/static/private';
+import { PUBLIC_SPOTIFY_CLIENT_ID } from '$env/static/public';
 
 export const GET = async ({ url }) => {
 	const params = url.searchParams;
@@ -23,7 +23,7 @@ export const GET = async ({ url }) => {
 	const res = await fetch('https://accounts.spotify.com/api/token?' + qs, {
 		method: 'POST',
 		headers: {
-			Authorization: `Basic ${btoa(SPOTIFY_CLIENT_ID + ':' + SPOTIFY_CLIENT_SECRET)}`,
+			Authorization: `Basic ${btoa(PUBLIC_SPOTIFY_CLIENT_ID + ':' + SPOTIFY_CLIENT_SECRET)}`,
 			'Content-Type': 'application/x-www-form-urlencoded',
 		},
 	});

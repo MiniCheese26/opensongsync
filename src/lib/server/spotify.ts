@@ -1,12 +1,24 @@
-import { ConnectionClient, type IConnectionClient, type Track } from './connectionClient';
+import { ConnectionClient, TrackItem } from './connectionClient';
 import { SPOTIFY_CLIENT_SECRET } from '$env/static/private';
 import dayjs from 'dayjs';
 import db from './db';
 import { PUBLIC_SPOTIFY_CLIENT_ID } from '$env/static/public';
 
+type SpotifySearchResponse<T> = {
+	limit: number;
+	offset: number;
+	total: number;
+	items: T[];
+};
+
+type SpotifyApiSavedTrack = {
+	track: SpotifyApiTrackItem;
+};
+
 type SpotifyApiTrackItem = {
 	album: {
 		name: string;
+		release_date: string;
 	};
 	artists: {
 		name: string;
@@ -14,9 +26,26 @@ type SpotifyApiTrackItem = {
 	href: string;
 	name: string;
 	id: string;
+	external_ids: {
+		isrc: string;
+	};
 };
 
-export class SpotifyClient extends ConnectionClient implements IConnectionClient<Track> {
+class SpotifyTrackItem extends TrackItem {
+	constructor(
+		name: string,
+		id: string | number,
+		album: string,
+		artists: string[],
+		href: string,
+		year?: string,
+		isrc?: string,
+	) {
+		super(name, id, album, artists, href, year, isrc);
+	}
+}
+
+export class SpotifyClient extends ConnectionClient {
 	protected readonly API_BASE = 'https://api.spotify.com/v1';
 
 	constructor(accessToken: string) {
@@ -31,6 +60,7 @@ export class SpotifyClient extends ConnectionClient implements IConnectionClient
 		}
 
 		if (dayjs().isAfter(dayjs(accessToken.expiresAt))) {
+			console.debug('refreshing token');
 			const qs = new URLSearchParams({
 				grant_type: 'refresh_token',
 				refresh_token: accessToken.refreshToken,
@@ -66,44 +96,95 @@ export class SpotifyClient extends ConnectionClient implements IConnectionClient
 		return new SpotifyClient(accessToken.accessToken);
 	}
 
-	async fetchAllTracks() {
-		const tracks: Track[] = [];
-		let offset = 0;
-		let res;
+	private parseTrack(data: SpotifyApiTrackItem) {
+		const year = data.album.release_date.split('-')[0];
 
-		while (
-			(res = await this.makeRequest('/me/tracks', { qs: { limit: 50, offset } }))?.data?.next
-		) {
-			offset += 50;
+		return new SpotifyTrackItem(
+			data.name,
+			data.id,
+			data.album.name,
+			data.artists.map((artist) => artist.name),
+			data.href,
+			year,
+			data.external_ids.isrc,
+		);
+	}
 
-			const items = res.data.items as Record<string, unknown>[];
+	async fetchTracks(limit = 50, offset = 0): Promise<SpotifySearchResponse<SpotifyTrackItem>> {
+		const safeLimit = limit > 50 ? 50 : limit;
 
-			items.forEach((item) => {
-				const trackItem = item.track as SpotifyApiTrackItem;
+		const res = await this.makeRequest<SpotifySearchResponse<SpotifyApiSavedTrack>>('/me/tracks', {
+			qs: { limit: safeLimit, offset },
+		});
 
-				tracks.push({
-					id: trackItem.id,
-					name: trackItem.name,
-					album: trackItem.album.name,
-					href: trackItem.href,
-					artists: trackItem.artists.map((artist) => artist.name),
-				});
-			});
-
-			console.debug(tracks);
-
-			await new Promise((resolve) => {
-				setTimeout(resolve, 2000000);
-			});
+		if (!res || !res.response.ok) {
+			return {
+				limit: safeLimit,
+				offset,
+				total: 0,
+				items: [],
+			};
 		}
 
-		console.debug(res);
+		return {
+			...res.data,
+			items: res.data.items.map((item) => this.parseTrack(item.track)),
+		};
+	}
 
-		if (!res || !res?.response.ok) {
-			// smth went wrong
-			return null;
+	async search(
+		query: string,
+		type: 'track',
+		limit = 50,
+		offset = 0,
+	): Promise<SpotifySearchResponse<SpotifyApiTrackItem>> {
+		const safeLimit = limit > 50 ? 50 : limit;
+
+		const res = await this.makeRequest<SpotifySearchResponse<SpotifyApiTrackItem>>('/search', {
+			qs: {
+				q: query,
+				type,
+				limit: safeLimit,
+				offset,
+			},
+		});
+
+		if (!res || !res.response.ok) {
+			return {
+				limit: safeLimit,
+				offset,
+				total: 0,
+				items: [],
+			};
 		}
 
-		return tracks;
+		return res.data;
+	}
+
+	async searchForTracks(
+		query: string,
+		limit = 50,
+		offset = 0,
+	): Promise<SpotifySearchResponse<SpotifyTrackItem>> {
+		const data = await this.search(query, 'track', limit, offset);
+
+		return {
+			...data,
+			items: data.items.map((item) => this.parseTrack(item)),
+		};
+	}
+
+	async saveTracks(ids: string[]) {
+		const res = await this.makeRequest(
+			'/me/tracks',
+			{
+				qs: {
+					ids: ids.join(','),
+				},
+			},
+			'PUT',
+		);
+
+		return !!res?.response.ok;
 	}
 }

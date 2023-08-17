@@ -7,7 +7,7 @@ export type Methods = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'OPTIONS';
 
 export type ConnectionResponse<T> = {
 	response: Response;
-	data?: T;
+	data: T;
 };
 
 export type Track = {
@@ -18,8 +18,32 @@ export type Track = {
 	href: string;
 };
 
-export interface IConnectionClient<T extends Track> {
-	fetchAllTracks(): Promise<T[] | null>;
+export class TrackItem {
+	album: string;
+	artists: string[];
+	name: string;
+	id: string | number;
+	href: string;
+	year?: string;
+	isrc?: string;
+
+	constructor(
+		name: string,
+		id: string | number,
+		album: string,
+		artists: string[],
+		href: string,
+		year?: string,
+		isrc?: string,
+	) {
+		this.name = name;
+		this.id = id;
+		this.album = album;
+		this.artists = artists;
+		this.href = href;
+		this.year = year;
+		this.isrc = isrc;
+	}
 }
 
 export abstract class ConnectionClient {

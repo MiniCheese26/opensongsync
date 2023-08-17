@@ -2,16 +2,16 @@ import db from '$lib/server/db';
 import dayjs from 'dayjs';
 
 export const POST = async ({ request }) => {
-	const data = await request.json();
+  const data = await request.json();
 
-	await db.tidalAccessTokens.create({
-		data: {
-			...data,
-			expiresAt: dayjs().add(data.expiresAt, 'seconds').toDate(),
-		},
-	});
+  await db.tidalAccessTokens.create({
+    data: {
+      ...data,
+      expiresAt: dayjs().add(data.expiresAt, 'seconds').toDate(),
+    },
+  });
 
-	return new Response(null, {
-		status: 201,
-	});
+  return new Response(null, {
+    status: 201,
+  });
 };

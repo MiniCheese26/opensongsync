@@ -174,7 +174,7 @@ export class SpotifyClient extends ConnectionClient {
     };
   }
 
-  async saveTracks(ids: string[]) {
+  async saveTracks(...ids: string[]) {
     const res = await this.makeRequest(
       '/me/tracks',
       {

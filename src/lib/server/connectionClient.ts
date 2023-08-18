@@ -50,7 +50,7 @@ export abstract class ConnectionClient {
   protected abstract readonly API_BASE: string;
   protected accessToken: string;
 
-  constructor(accessToken: string) {
+  protected constructor(accessToken: string) {
     this.accessToken = accessToken;
   }
 

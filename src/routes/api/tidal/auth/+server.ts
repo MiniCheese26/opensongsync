@@ -1,7 +1,8 @@
 import db from '$lib/server/db';
 import dayjs from 'dayjs';
+import type { RequestHandler } from './$types';
 
-export const POST = async ({ request }) => {
+export const POST = (async ({ request }) => {
   const data = await request.json();
 
   await db.tidalAccessTokens.create({
@@ -14,4 +15,4 @@ export const POST = async ({ request }) => {
   return new Response(null, {
     status: 201,
   });
-};
+}) satisfies RequestHandler;

@@ -74,7 +74,8 @@
 					accessToken: authCheckBody.access_token,
 					refreshToken: authCheckBody.refresh_token,
 					userId: authCheckBody.user.userId,
-					expiresAt: authCheckBody.expires_in
+					expiresAt: authCheckBody.expires_in,
+                    countryCode: authCheckBody.user.countryCode,
 				};
 				break;
 			}
@@ -98,10 +99,17 @@
 	};
 
 	const syncSpotifyTracks = async () => {
-		await fetch('api/spotify/syncTracks')
+		const r = await fetch('api/spotify/syncTracks');
+        console.debug(await r.json());
 	}
+
+    const syncTidalTracks = async () => {
+        const r = await fetch('api/tidal/syncTracks');
+        console.debug(await r.json());
+    }
 </script>
 
 <button on:click={onSpotifyLogin}>Login to spotify</button>
 <button on:click={onTidalLogin}>Login to tidal</button>
 <button on:click={syncSpotifyTracks}>Sync spotify tracks</button>
+<button on:click={syncTidalTracks}>Sync tidal tracks</button>

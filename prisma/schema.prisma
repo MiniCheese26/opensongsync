@@ -27,5 +27,6 @@ model TidalAccessTokens {
   accessToken  String
   refreshToken String
   userId       Int
+  countryCode  String
   expiresAt    DateTime
 }

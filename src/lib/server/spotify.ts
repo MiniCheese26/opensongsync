@@ -117,7 +117,7 @@ export class SpotifyClient extends ConnectionClient {
       qs: { limit: safeLimit, offset },
     });
 
-    if (!res || !res.response.ok) {
+    if (!res?.response.ok || !res.data) {
       return {
         limit: safeLimit,
         offset,
@@ -149,7 +149,7 @@ export class SpotifyClient extends ConnectionClient {
       },
     });
 
-    if (!res || !res.response.ok) {
+    if (!res?.response.ok || !res.data) {
       return {
         limit: safeLimit,
         offset,

@@ -85,7 +85,7 @@ export abstract class ConnectionClient {
     path: string,
     data?: RequestData,
     method: Methods = 'GET',
-  ): Promise<ConnectionResponse<T> | null> {
+  ): Promise<ConnectionResponse<T | null> | null> {
     const url = this.makeUrl(path, data?.qs);
 
     const options: RequestInit = {
@@ -108,9 +108,19 @@ export abstract class ConnectionClient {
       return null;
     }
 
+    let responseData;
+
+    const text = await response.text();
+
+    try {
+      responseData = JSON.parse(text);
+    } catch (e) {
+      responseData = null;
+    }
+
     return {
       response,
-      data: await response.json(),
+      data: responseData,
     };
   }
 }

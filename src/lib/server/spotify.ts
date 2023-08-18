@@ -48,10 +48,6 @@ class SpotifyTrackItem extends TrackItem {
 export class SpotifyClient extends ConnectionClient {
   protected readonly API_BASE = 'https://api.spotify.com/v1';
 
-  constructor(accessToken: string) {
-    super(accessToken);
-  }
-
   static async initialise(): Promise<SpotifyClient | null> {
     const accessToken = await db.spotifyAccessTokens.findFirst();
 
@@ -110,7 +106,7 @@ export class SpotifyClient extends ConnectionClient {
     );
   }
 
-  async fetchTracks(limit = 50, offset = 0): Promise<SpotifySearchResponse<SpotifyTrackItem>> {
+  async fetchUserTracks(limit = 50, offset = 0): Promise<SpotifySearchResponse<SpotifyTrackItem>> {
     const safeLimit = limit > 50 ? 50 : limit;
 
     const res = await this.makeRequest<SpotifySearchResponse<SpotifyApiSavedTrack>>('/me/tracks', {

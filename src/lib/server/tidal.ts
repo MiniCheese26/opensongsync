@@ -29,7 +29,44 @@ type TidalApiTrackItem = {
   streamStartDate: string;
 };
 
-class TidalTrackItem extends TrackItem {}
+type TidalSearchTypes = 'artists' | 'albums' | 'tracks' | 'playlists';
+
+type TidalApiSearchResponse = {
+  albums: TidalResponse<unknown>;
+  artists: TidalResponse<unknown>;
+  playlists: TidalResponse<unknown>;
+  tracks: TidalResponse<TidalApiTrackItem>;
+};
+
+type TidalSearchResponse = {
+  albums: TidalResponse<unknown>;
+  artists: TidalResponse<unknown>;
+  playlists: TidalResponse<unknown>;
+  tracks: TidalResponse<TidalTrackItem>;
+};
+
+const getDefaultTidalResponse = (limit: number, offset: number) => ({
+  limit,
+  offset,
+  totalNumberOfItems: 0,
+  items: [],
+});
+
+class TidalTrackItem extends TrackItem {
+  static parse(data: TidalApiTrackItem) {
+    const year = dayjs(data.streamStartDate).get('year').toString();
+
+    return new TidalTrackItem(
+      data.title,
+      data.id,
+      data.album.title,
+      data.artists.map((artist) => artist.name),
+      data.url,
+      year,
+      data.isrc,
+    );
+  }
+}
 
 export class TidalClient extends ConnectionClient {
   protected readonly API_BASE = 'https://api.tidal.com/v1';
@@ -92,20 +129,6 @@ export class TidalClient extends ConnectionClient {
     );
   }
 
-  private parseTrack(data: TidalApiTrackItem) {
-    const year = dayjs(data.streamStartDate).get('year').toString();
-
-    return new TidalTrackItem(
-      data.title,
-      data.id,
-      data.album.title,
-      data.artists.map((artist) => artist.name),
-      data.url,
-      year,
-      data.isrc,
-    );
-  }
-
   async fetchUserTracks(
     limit = 50,
     offset = 0,
@@ -126,17 +149,47 @@ export class TidalClient extends ConnectionClient {
     );
 
     if (!res?.response.ok || !res.data) {
-      return {
-        limit,
-        offset,
-        totalNumberOfItems: 0,
-        items: [],
-      };
+      return getDefaultTidalResponse(limit, offset);
     }
 
     return {
       ...res.data,
-      items: res.data.items.map((item) => this.parseTrack(item.item)),
+      items: res.data.items.map((item) => TidalTrackItem.parse(item.item)),
+    };
+  }
+
+  async search(
+    query: string,
+    types: TidalSearchTypes[] = ['albums', 'artists', 'tracks', 'playlists'],
+    limit = 50,
+    offset = 0,
+  ): Promise<TidalSearchResponse> {
+    const res = await this.makeRequest<TidalApiSearchResponse>('/search', {
+      qs: {
+        query,
+        limit,
+        offset,
+        types: types.map((type) => type.toUpperCase()).join(','),
+        countryCode: this.countryCode,
+      },
+    });
+
+    if (!res?.response.ok || !res.data) {
+      return {
+        artists: getDefaultTidalResponse(limit, offset),
+        albums: getDefaultTidalResponse(limit, offset),
+        tracks: getDefaultTidalResponse(limit, offset),
+        playlists: getDefaultTidalResponse(limit, offset),
+      };
+    }
+
+    // TODO: finish the rest of these once we have album, artist and playlist parsing done
+    return {
+      ...res.data,
+      tracks: {
+        ...res.data.tracks,
+        items: res.data.tracks.items.map((item) => TidalTrackItem.parse(item))
+      },
     };
   }
 }

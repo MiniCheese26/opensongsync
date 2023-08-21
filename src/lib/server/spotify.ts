@@ -31,17 +31,26 @@ type SpotifyApiTrackItem = {
   };
 };
 
+const getDefaultSpotifyResponse = (limit: number, offset: number) => ({
+  limit,
+  offset,
+  total: 0,
+  items: [],
+});
+
 class SpotifyTrackItem extends TrackItem {
-  constructor(
-    name: string,
-    id: string | number,
-    album: string,
-    artists: string[],
-    href: string,
-    year?: string,
-    isrc?: string,
-  ) {
-    super(name, id, album, artists, href, year, isrc);
+  static parse(data: SpotifyApiTrackItem) {
+    const year = data.album.release_date.split('-')[0];
+
+    return new SpotifyTrackItem(
+      data.name,
+      data.id,
+      data.album.name,
+      data.artists.map((artist) => artist.name),
+      data.href,
+      year,
+      data.external_ids.isrc,
+    );
   }
 }
 
@@ -92,20 +101,6 @@ export class SpotifyClient extends ConnectionClient {
     return new SpotifyClient(accessToken.accessToken);
   }
 
-  private parseTrack(data: SpotifyApiTrackItem) {
-    const year = data.album.release_date.split('-')[0];
-
-    return new SpotifyTrackItem(
-      data.name,
-      data.id,
-      data.album.name,
-      data.artists.map((artist) => artist.name),
-      data.href,
-      year,
-      data.external_ids.isrc,
-    );
-  }
-
   async fetchUserTracks(limit = 50, offset = 0): Promise<SpotifySearchResponse<SpotifyTrackItem>> {
     const safeLimit = limit > 50 ? 50 : limit;
 
@@ -114,17 +109,12 @@ export class SpotifyClient extends ConnectionClient {
     });
 
     if (!res?.response.ok || !res.data) {
-      return {
-        limit: safeLimit,
-        offset,
-        total: 0,
-        items: [],
-      };
+      return getDefaultSpotifyResponse(safeLimit, offset);
     }
 
     return {
       ...res.data,
-      items: res.data.items.map((item) => this.parseTrack(item.track)),
+      items: res.data.items.map((item) => SpotifyTrackItem.parse(item.track)),
     };
   }
 
@@ -146,12 +136,7 @@ export class SpotifyClient extends ConnectionClient {
     });
 
     if (!res?.response.ok || !res.data) {
-      return {
-        limit: safeLimit,
-        offset,
-        total: 0,
-        items: [],
-      };
+      return getDefaultSpotifyResponse(safeLimit, offset);
     }
 
     return res.data;
@@ -166,7 +151,7 @@ export class SpotifyClient extends ConnectionClient {
 
     return {
       ...data,
-      items: data.items.map((item) => this.parseTrack(item)),
+      items: data.items.map((item) => SpotifyTrackItem.parse(item)),
     };
   }
 

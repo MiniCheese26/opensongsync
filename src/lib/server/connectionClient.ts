@@ -19,6 +19,7 @@ export type Methods = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'OPTIONS';
 export type ConnectionResponse<T> = {
   response: Response;
   data: T;
+  text: string;
 };
 
 export type Track = {
@@ -132,6 +133,7 @@ export abstract class ConnectionClient {
     return {
       response,
       data: responseData,
+      text,
     };
   }
 }

@@ -129,6 +129,18 @@ export class TidalClient extends ConnectionClient {
     );
   }
 
+  protected makeUrl(path: string, qs?: Record<string, string | number> | undefined): string {
+    if (qs) {
+      qs.countryCode = this.countryCode;
+    } else {
+      qs = {
+        countryCode: this.countryCode,
+      };
+    }
+
+    return super.makeUrl(path, qs);
+  }
+
   async fetchUserTracks(
     limit = 50,
     offset = 0,
@@ -143,7 +155,6 @@ export class TidalClient extends ConnectionClient {
           limit,
           order,
           orderDirection,
-          countryCode: this.countryCode,
         },
       },
     );
@@ -170,7 +181,6 @@ export class TidalClient extends ConnectionClient {
         limit,
         offset,
         types: types.map((type) => type.toUpperCase()).join(','),
-        countryCode: this.countryCode,
       },
     });
 
@@ -188,8 +198,24 @@ export class TidalClient extends ConnectionClient {
       ...res.data,
       tracks: {
         ...res.data.tracks,
-        items: res.data.tracks.items.map((item) => TidalTrackItem.parse(item))
+        items: res.data.tracks.items.map((item) => TidalTrackItem.parse(item)),
       },
     };
+  }
+
+  async saveTrack(id: string) {
+    const res = await this.makeRequest(
+      `/users/${this.userId}/favorites/tracks`,
+      {
+        // Calls it trackIds, doesn't accept an array
+        raw: `trackIds=${id}`,
+      },
+      'POST',
+      {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    );
+
+    return !!res?.response.ok;
   }
 }

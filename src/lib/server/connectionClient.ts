@@ -4,15 +4,23 @@ type RequestDataBase = {
 
 type RequestDataFormData = {
   body?: never;
-  formData?: Record<string, string>;
+  formData: Record<string, string>;
+  raw?: never;
 } & RequestDataBase;
 
 type RequestDataJson = {
   body: Record<string, unknown> | unknown[];
   formData?: never;
+  raw?: never;
 } & RequestDataBase;
 
-export type RequestData = RequestDataFormData | RequestDataJson;
+type RequestDataRaw = {
+  body?: never;
+  formData?: never;
+  raw?: string;
+} & RequestDataBase;
+
+export type RequestData = RequestDataFormData | RequestDataJson | RequestDataRaw;
 
 export type Methods = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'OPTIONS';
 
@@ -87,6 +95,8 @@ export abstract class ConnectionClient {
       });
 
       body = formData;
+    } else if (data?.raw) {
+      body = data.raw
     }
 
     return body;
@@ -96,6 +106,7 @@ export abstract class ConnectionClient {
     path: string,
     data?: RequestData,
     method: Methods = 'GET',
+    headers: Record<string, string> = {},
   ): Promise<ConnectionResponse<T | null> | null> {
     const url = this.makeUrl(path, data?.qs);
     const body = this.makeBody(data);
@@ -109,6 +120,15 @@ export abstract class ConnectionClient {
       options.headers = this.makeHeaders('application/json');
     } else if (data?.qs || data?.formData) {
       options.headers = this.makeHeaders('application/x-www-form-urlencoded');
+    } else {
+      options.headers = this.makeHeaders();
+    }
+
+    if (headers) {
+      options.headers = {
+        ...options.headers,
+        ...headers,
+      };
     }
 
     let response;

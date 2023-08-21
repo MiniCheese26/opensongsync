@@ -203,12 +203,12 @@ export class TidalClient extends ConnectionClient {
     };
   }
 
-  async saveTrack(id: string) {
+  async saveTracks(...ids: string[]) {
     const res = await this.makeRequest(
       `/users/${this.userId}/favorites/tracks`,
       {
-        // Calls it trackIds, doesn't accept an array
-        raw: `trackIds=${id}`,
+        // :|
+        raw: `trackIds=${ids.join(',')}`,
       },
       'POST',
       {

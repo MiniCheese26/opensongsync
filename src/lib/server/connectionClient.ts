@@ -4,7 +4,7 @@ type RequestDataBase = {
 
 type RequestDataFormData = {
   body?: never;
-  formData: Record<string, string>;
+  formData: Record<string, string | number>;
   raw?: never;
 } & RequestDataBase;
 
@@ -83,7 +83,7 @@ export abstract class ConnectionClient {
       const formData = new FormData();
 
       Object.entries(data.formData).forEach(([k, v]) => {
-        formData.append(k, v);
+        formData.append(k, String(v));
       });
 
       body = formData;

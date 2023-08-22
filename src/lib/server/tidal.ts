@@ -129,7 +129,7 @@ export class TidalClient extends ConnectionClient {
     );
   }
 
-  protected makeUrl(path: string, qs?: Record<string, string | number> | undefined): string {
+  protected makeUrl(path: string, qs?: Record<string, string | number>): string {
     if (qs) {
       qs.countryCode = this.countryCode;
     } else {

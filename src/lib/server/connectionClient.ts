@@ -30,14 +30,6 @@ export type ConnectionResponse<T> = {
   text: string;
 };
 
-export type Track = {
-  id: string | number;
-  name: string;
-  album: string;
-  artists: string[];
-  href: string;
-};
-
 export class TrackItem {
   constructor(
     public name: string,

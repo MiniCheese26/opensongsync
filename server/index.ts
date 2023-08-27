@@ -1,13 +1,15 @@
-import api from './api';
 import express from 'express';
 import { handler } from '../build/handler.js';
+import { createServer } from 'node:http';
+import setupWebSockets from './setupWebSockets';
 
 const app = express();
+const server = createServer(app);
 
-app.use('/api/jobs', api);
+setupWebSockets(server);
 
 app.use(handler);
 
-app.listen(3000, () => {
+server.listen(3000, () => {
   console.log('listening on port 3000');
 });

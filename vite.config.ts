@@ -13,9 +13,13 @@ export default defineConfig(({ mode }) => {
 
   return {
     server: {
-      https: process.env.PUBLIC_HTTPS?.toLocaleLowerCase() === 'true',
+      https: process.env.PUBLIC_HTTPS?.toLowerCase() === 'true',
       proxy: {
-        '/api/jobs/': 'http://localhost:3000',
+        '/socket.io/': {
+          ws: true,
+          target: 'http://localhost:3000',
+          changeOrigin: true,
+        },
       },
     },
     plugins: [

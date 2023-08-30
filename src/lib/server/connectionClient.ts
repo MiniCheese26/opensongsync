@@ -1,3 +1,5 @@
+import dayjs from "dayjs";
+
 type RequestDataBase = {
   qs?: Record<string, string | number>;
 };
@@ -40,10 +42,24 @@ export class TrackItem {
     public year?: string,
     public isrc?: string,
   ) {}
+
+  toJson() {
+    return {
+      name: this.name,
+      id: this.id,
+      album: this.album,
+      artists: this.artists,
+      href: this.href,
+      year: this.year,
+      isrc: this.isrc,
+    };
+  }
 }
 
 export abstract class ConnectionClient {
   protected abstract readonly API_BASE: string;
+  protected abstract readonly THROTTLE_TIME: number;
+  protected lastRequest: Date | null = null;
 
   protected constructor(protected accessToken: string) {}
 
@@ -88,10 +104,30 @@ export abstract class ConnectionClient {
 
       body = formData;
     } else if (data?.raw) {
-      body = data.raw
+      body = data.raw;
     }
 
     return body;
+  }
+
+  protected async throttleRequest() {
+    if (this.lastRequest) {
+      const now = dayjs();
+      const lastRequest = dayjs(this.lastRequest);
+      const nextRequest = lastRequest.add(this.THROTTLE_TIME, 'milliseconds');
+
+      if (now.isBefore(nextRequest)) {
+        const timeLeft = nextRequest.diff(now, 'milliseconds');
+
+        await new Promise((resolve) => {
+          setTimeout(resolve, timeLeft)
+        });
+      }
+    }
+
+    this.lastRequest = new Date();
+
+    return;
   }
 
   protected async makeRequest<T extends Record<string, unknown>>(
@@ -100,6 +136,8 @@ export abstract class ConnectionClient {
     method: Methods = 'GET',
     headers: Record<string, string> = {},
   ): Promise<ConnectionResponse<T | null> | null> {
+    await this.throttleRequest();
+
     const url = this.makeUrl(path, data?.qs);
     const body = this.makeBody(data);
 

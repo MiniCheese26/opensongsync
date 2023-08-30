@@ -9,6 +9,7 @@ type SpotifySearchResponse<T> = {
   offset: number;
   total: number;
   items: T[];
+  success: boolean;
 };
 
 type SpotifyApiSavedTrack = {
@@ -31,11 +32,12 @@ type SpotifyApiTrackItem = {
   };
 };
 
-const getDefaultSpotifyResponse = (limit: number, offset: number) => ({
+const getDefaultSpotifyResponse = (limit: number, offset: number, success = false) => ({
   limit,
   offset,
   total: 0,
   items: [],
+  success,
 });
 
 class SpotifyTrackItem extends TrackItem {
@@ -56,6 +58,7 @@ class SpotifyTrackItem extends TrackItem {
 
 export class SpotifyClient extends ConnectionClient {
   protected readonly API_BASE = 'https://api.spotify.com/v1';
+  protected readonly THROTTLE_TIME = 2500;
 
   static async initialise(): Promise<SpotifyClient | null> {
     const accessToken = await db.spotifyAccessTokens.findFirst();
@@ -115,6 +118,7 @@ export class SpotifyClient extends ConnectionClient {
     return {
       ...res.data,
       items: res.data.items.map((item) => SpotifyTrackItem.parse(item.track)),
+      success: true,
     };
   }
 
@@ -139,7 +143,10 @@ export class SpotifyClient extends ConnectionClient {
       return getDefaultSpotifyResponse(safeLimit, offset);
     }
 
-    return res.data;
+    return {
+      ...res.data,
+      success: true,
+    };
   }
 
   async searchForTracks(

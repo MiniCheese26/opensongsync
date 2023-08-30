@@ -1,11 +1,11 @@
 <script lang="ts">
   import { PUBLIC_SPOTIFY_CLIENT_ID } from '$env/static/public';
   import { generateRandomString } from '$lib/spotify';
+  import type { Connection, Selection } from '$lib/sse';
   import { AUTH_URL, TIDAL_CLIENT_ID, TIDAL_CLIENT_SECRET } from '$lib/tidal';
   import { getDomain } from '$lib/utils';
   import dayjs from 'dayjs';
-  import ws from '$lib/ws';
-  import { onMount } from 'svelte';
+  import { source } from 'sveltekit-sse';
 
   const onSpotifyLogin = async () => {
     const state = generateRandomString(16);
@@ -98,31 +98,40 @@
     console.debug('done');
   };
 
+  let connection: Connection | undefined;
+  let errors: Selection | undefined;
+  let progress: Selection | undefined;
+  let syncing = false;
+
   const syncSpotifyTracks = async () => {
-    const r = await fetch('api/spotify/syncTracks');
-    console.debug(await r.json());
+    connection = source('api/spotify/syncTracks');
+    syncing = true;
+    errors = connection.select('spotify:userTracks:error');
+    progress = connection.select('spotify:userTracks:progress');
+  };
+
+  const onCancel = () => {
+    if (connection) {
+      connection.close();
+    }
   };
 
   const syncTidalTracks = async () => {
     const r = await fetch('api/tidal/syncTracks');
     console.debug(await r.json());
   };
-
-  const send = () => {
-	ws.emit('fromClient', 'lol', (response: unknown) => {
-		console.debug(response);
-	});
-  };
-
-  onMount(() => {
-    ws.on('fromServer', (msg) => {
-      console.debug('msg', msg);
-    });
-  });
 </script>
 
 <button on:click={onSpotifyLogin}>Login to spotify</button>
 <button on:click={onTidalLogin}>Login to tidal</button>
 <button on:click={syncSpotifyTracks}>Sync spotify tracks</button>
 <button on:click={syncTidalTracks}>Sync tidal tracks</button>
-<button on:click={send}>Send</button>
+{#if syncing}
+  <button on:click={onCancel}>cancel</button>
+{/if}
+<code>
+  errors - {$errors}
+</code>
+<code>
+  progress - {$progress}
+</code>

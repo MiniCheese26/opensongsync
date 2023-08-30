@@ -9,7 +9,7 @@ export const GET = (async () => {
         throw error(400, '');
     }
 
-    const k = await s.fetchUserTracks();
+    const k = await s.saveTracks('300821366', '49535261');
 
     return json(k);
 }) satisfies RequestHandler;

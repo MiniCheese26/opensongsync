@@ -1,7 +1,7 @@
 <script lang="ts">
   import { PUBLIC_SPOTIFY_CLIENT_ID } from '$env/static/public';
   import { generateRandomString } from '$lib/spotify';
-  import type { Connection, Selection } from '$lib/sse';
+  import type { Connection, Selection, SpotifySyncTracksEvent } from '$lib/sse';
   import { AUTH_URL, TIDAL_CLIENT_ID, TIDAL_CLIENT_SECRET } from '$lib/tidal';
   import { getDomain } from '$lib/utils';
   import dayjs from 'dayjs';
@@ -102,12 +102,13 @@
   let errors: Selection | undefined;
   let progress: Selection | undefined;
   let syncing = false;
+  $: progressParsed = $progress ? (JSON.parse($progress) as SpotifySyncTracksEvent) : undefined;
 
   const syncSpotifyTracks = async () => {
     connection = source('api/spotify/syncTracks');
     syncing = true;
-    errors = connection.select('spotify:userTracks:error');
-    progress = connection.select('spotify:userTracks:progress');
+    errors = connection.select('spotify:syncTracks:error');
+    progress = connection.select('spotify:syncTracks:progress');
   };
 
   const onCancel = () => {
@@ -132,6 +133,6 @@
 <code>
   errors - {$errors}
 </code>
-<code>
-  progress - {$progress}
-</code>
+{#if progressParsed}
+{progressParsed.page} / {progressParsed.totalPages}
+{/if}

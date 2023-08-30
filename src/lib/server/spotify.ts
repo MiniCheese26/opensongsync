@@ -40,7 +40,7 @@ const getDefaultSpotifyResponse = (limit: number, offset: number, success = fals
   success,
 });
 
-class SpotifyTrackItem extends TrackItem {
+export class SpotifyTrackItem extends TrackItem {
   static parse(data: SpotifyApiTrackItem) {
     const year = data.album.release_date.split('-')[0];
 

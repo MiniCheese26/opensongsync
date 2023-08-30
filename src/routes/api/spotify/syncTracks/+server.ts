@@ -1,14 +1,16 @@
+import { makeEmitData } from '$lib/server/serverUtils';
 import { SpotifyClient } from '$lib/server/spotify';
+import type { SpotifySyncTracksEvent } from '$lib/sse';
 import type { RequestHandler } from './$types';
 import { events } from 'sveltekit-sse';
 
 export const GET = (async () => {
   return events(async (emit) => {
-    const s = await SpotifyClient.initialise();
+    const client = await SpotifyClient.initialise();
 
-    if (!s) {
+    if (!client) {
       emit(
-        'spotify:userTracks:error',
+        'spotify:syncTracks:error',
         JSON.stringify({
           message: ':(',
         }),
@@ -17,37 +19,16 @@ export const GET = (async () => {
     }
 
     const limit = 50;
+    let total = -1;
+    let offset = 0;
 
-    const firstResponse = await s.fetchUserTracks(limit);
-
-    if (!firstResponse.success) {
-      emit(
-        'spotify:userTracks:error',
-        JSON.stringify({
-          message: ':(',
-        }),
-      );
-      return;
-    }
-
-    emit(
-      'spotify:userTracks:progress',
-      JSON.stringify({
-        total: firstResponse.total,
-        items: firstResponse.items.map((item) => item.toJson()),
-      }),
-    );
-
-    const total = firstResponse.total;
-    let offset = limit;
-
-    while (offset + limit <= total) {
+    while (offset + limit <= total || total === -1) {
       console.debug('request');
-      const res = await s.fetchUserTracks(limit, offset);
+      const res = await client.fetchUserTracks(limit, offset);
 
       if (!res.success) {
         emit(
-          'spotify:userTracks:error',
+          'spotify:syncTracks:error',
           JSON.stringify({
             message: ':(',
           }),
@@ -55,11 +36,16 @@ export const GET = (async () => {
         return;
       }
 
+      total = res.total;
+
       emit(
-        'spotify:userTracks:progress',
-        JSON.stringify({
+        'spotify:syncTracks:progress',
+        makeEmitData<SpotifySyncTracksEvent>({
           total: res.total,
           items: res.items.map((item) => item.toJson()),
+          perPage: limit,
+          page: (offset / limit) + 1,
+          totalPages: Math.ceil(total / limit),
         }),
       );
 
